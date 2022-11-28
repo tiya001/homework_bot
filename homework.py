@@ -34,7 +34,7 @@ PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('CHAT_ID')
 
-RETRY_TIME = 600
+RETRY_PERIOD = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
@@ -164,7 +164,7 @@ def main():
 
         except IndexError:
             logger.debug("Новых статусов нет.")
-            time.sleep(RETRY_TIME)
+            time.sleep(RETRY_PERIOD)
             continue
 
         except Exception as exc:
@@ -177,7 +177,7 @@ def main():
                 send_message(bot, message)
             except SendMessageError:
                 logger.exception("Сбой в отправке сообщения!")
-        time.sleep(RETRY_TIME)
+        time.sleep(RETRY_PERIOD)
 
 
 if __name__ == '__main__':
