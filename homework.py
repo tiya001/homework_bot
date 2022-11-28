@@ -1,11 +1,11 @@
 import os
 import time
 from http import HTTPStatus
+
 import requests
 import logging
 from logging.handlers import RotatingFileHandler
 import telegram
-
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -47,6 +47,7 @@ HOMEWORK_STATUSES = {
 
 
 def send_message(bot, message):
+    """Отправка сообщения"""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.info(
@@ -60,6 +61,7 @@ def send_message(bot, message):
 
 
 def get_api_answer(current_timestamp):
+    """Запрос к API"""
     try:
         timestamp = current_timestamp or int(time.time())
         params = {'from_date': timestamp}
@@ -79,6 +81,7 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
+    """Проверка ответа"""
     homework_list = response['homeworks']
     if not isinstance(homework_list, list):
         logger.error(f'Тип данных: {type(homework_list)}, ожидался: list')
@@ -91,6 +94,7 @@ def check_response(response):
 
 
 def parse_status(homework):
+    """Статус работы"""
     if not isinstance(homework, dict):
         logger.error('Ошибка типа данных в homework')
         raise KeyError('Missing "homework_name" key in API response')
@@ -105,6 +109,7 @@ def parse_status(homework):
 
 
 def check_tokens():
+    """Проверка токенов"""
     if not all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
         return False
     return True
