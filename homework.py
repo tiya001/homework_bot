@@ -47,21 +47,21 @@ HOMEWORK_STATUSES = {
 
 
 def send_message(bot, message):
-    """Отправка сообщения"""
+    """Отправка сообщения."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.info(
             f'Отправлено сообщение {message} пользователю: {TELEGRAM_CHAT_ID}'
         )
-    except Exception as Error:
+    except Exception as error:
         logger.error(
             f'Сообщение {message} не отправлено'
-            f'Причина: {Error}'
+            f'Причина: {error}'
         )
 
 
 def get_api_answer(current_timestamp):
-    """Запрос к API"""
+    """Запрос к API."""
     try:
         timestamp = current_timestamp or int(time.time())
         params = {'from_date': timestamp}
@@ -75,13 +75,13 @@ def get_api_answer(current_timestamp):
             raise Exception('Ошибка при запросе к API')
         homework_status_py = homework_status.json()
         return homework_status_py
-    except Exception as Error:
-        logger.error(f'Ошибка {Error} при запросе к API')
-        raise Exception(f'Ошибка{Error}')
+    except Exception as error:
+        logger.error(f'Ошибка {error} при запросе к API')
+        raise Exception(f'Ошибка{error}')
 
 
 def check_response(response):
-    """Проверка ответа"""
+    """Проверка ответа."""
     homework_list = response['homeworks']
     if not isinstance(homework_list, list):
         logger.error(f'Тип данных: {type(homework_list)}, ожидался: list')
@@ -94,7 +94,7 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """Статус работы"""
+    """Статус работы."""
     if not isinstance(homework, dict):
         logger.error('Ошибка типа данных в homework')
         raise KeyError('Missing "homework_name" key in API response')
@@ -109,7 +109,7 @@ def parse_status(homework):
 
 
 def check_tokens():
-    """Проверка токенов"""
+    """Проверка токенов."""
     if not all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
         return False
     return True
