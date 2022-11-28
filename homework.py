@@ -58,6 +58,7 @@ def send_message(bot, message):
             f'Причина: {Error}'
         )
 
+
 def get_api_answer(current_timestamp):
     try:
         timestamp = current_timestamp or int(time.time())
@@ -68,7 +69,7 @@ def get_api_answer(current_timestamp):
             params=params
         )
         if homework_status.status_code != HTTPStatus.OK:
-            logger.error(f'Ошибка при запросе к API')
+            logger.error('Ошибка при запросе к API')
             raise Exception('Ошибка при запросе к API')
         homework_status_py = homework_status.json()
         return homework_status_py
@@ -99,6 +100,7 @@ def parse_status(homework):
         verdict = HOMEWORK_STATUSES[homework_status]
     except Exception as Error:
         logger.error('Список домашних работ пуст')
+        raise Exception(f'Ошибка{Error}')
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
