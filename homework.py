@@ -53,7 +53,7 @@ def send_message(bot, message):
     """
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
-        logger.info("Сообщение успешно отправлено в Telegram: %s", message)
+        logger.debug("Сообщение успешно отправлено в Telegram: %s", message)
     except Exception as exc:
         raise SendMessageError("Не удалось отправить сообщение.") from exc
 
