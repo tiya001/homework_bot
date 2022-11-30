@@ -11,7 +11,6 @@ import telegram
 from dotenv import load_dotenv
 
 from exceptions import (
-    SendMessageError,
     UnexpectedStatusCodeError,
     ExpectedKeysNotFoundError,
     UnexpectedStatusError,
@@ -54,9 +53,8 @@ def send_message(bot, message):
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.debug("Сообщение успешно отправлено в Telegram: %s", message)
-    except Exception as exc:
+    except Exception:
         logger.error("Не удалось отправить сообщение.")
-        raise SendMessageError("Не удалось отправить сообщение.") from exc
 
 
 def get_api_answer(current_timestamp):
@@ -86,6 +84,10 @@ def get_api_answer(current_timestamp):
     except Exception as exp:
         raise ConnectionError(
             "Ответ от сервера не получен/Формат ответа отличен от JSON "
+            f"Код ответа: {response.status_code}"
+            f"URL запроса: {ENDPOINT}"
+            f"headers: {HEADERS}"
+            f"params: {params}"
         ) from exp
     return json_response
 
@@ -98,15 +100,21 @@ def check_response(response):
     доступный в ответе API по ключу 'homeworks'.
     """
     if not isinstance(response, dict):
-        raise TypeError("Ответ сервер не является словарем.")
+        raise TypeError("Ответ сервер не является словарем."
+                        f"{response}"
+                        )
 
     if 'current_date' not in response and 'homeworks' not in response:
-        raise ExpectedKeysNotFoundError("Ответ не содержит ожидаемых ключей.")
+        raise ExpectedKeysNotFoundError("Ответ не содержит ожидаемых ключей."
+                                        f"{response}"
+                                        )
 
     homeworks = response.get('homeworks')
 
     if not isinstance(homeworks, list):
-        raise TypeError("homeworks не является списком.")
+        raise TypeError("homeworks не является списком."
+                        f"{homeworks}"
+                        )
 
     return homeworks
 
@@ -121,9 +129,13 @@ def parse_status(homework):
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
     if not homework_name:
-        raise KeyError("Имя работы не обнаружено.")
+        raise KeyError("Имя работы не обнаружено."
+                       f"{homework}"
+                       )
     if homework_status not in HOMEWORK_VERDICTS:
-        raise UnexpectedStatusError("Обнаружен недокументированный статус.")
+        raise UnexpectedStatusError("Обнаружен недокументированный статус."
+                                    f"{homework_status}"
+                                    )
 
     verdict = HOMEWORK_VERDICTS.get(homework_status)
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
@@ -158,8 +170,12 @@ def main():
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            current_timestamp = response.get('current_date')
             homeworks = check_response(response)
+            current_timestamp = response.get('current_date')
+            if len(homeworks) == 0:
+                logger.debug("Новых статусов нет.")
+                time.sleep(RETRY_PERIOD)
+                continue
             homework = homeworks[0]
             message = parse_status(homework)
 
@@ -174,10 +190,7 @@ def main():
 
         if last_message != message:
             last_message = message
-            try:
-                send_message(bot, message)
-            except SendMessageError:
-                logger.exception("Сбой в отправке сообщения!")
+            send_message(bot, message)
         time.sleep(RETRY_PERIOD)
 
 
